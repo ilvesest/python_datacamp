@@ -1,0 +1,250 @@
+
+-- ==================  SELECTING  ====================
+
+
+-- Selecting column(s):
+SELECT years, name
+FROM films;
+
+
+-- Selecting all column(s):
+SELECT *
+FROM films;
+
+
+-- Selecting limited number of rows:
+SELECT *
+FROM films
+LIMIT 10;
+
+
+-- Selecting all the unique values from a column
+-- (ignoring duplicates):
+SELECT DISTINCT language
+FROM films;
+
+
+-- Counting number of rows:
+SELECT COUNT(*)
+FROM people;
+
+
+-- Count the number of non-missing values in a particular column:
+SELECT COUNT(birthdate)
+FROM people;
+
+
+-- One can combine COUNT and DISTINCT
+SELECT COUNT(DISTINCT birthdate)
+FROM people;
+
+
+-- ===================  FILTERING  ============================
+
+
+-- In SQL, the WHERE keyword allows you to filter based on both text
+-- and numeric values in a table. There are a few different comparison
+-- operators you can use:
+
+--    = equal
+--    <> not equal
+--    < less than
+--    > greater than
+--    <= less than or equal to
+--    >= greater than or equal to
+
+SELECT title
+FROM films
+WHERE title = 'Metropolis';
+
+
+-- WHERE queries by combining multiple conditions with the AND keyword:
+SELECT title
+FROM films
+WHERE release_year > 1994
+AND release_year < 2000;
+
+
+-- returns all films released in either 1994 or 2000:
+SELECT title
+FROM films
+WHERE release_year = 1994
+OR release_year = 2000;
+
+SELECT title
+FROM films
+WHERE (release_year = 1994 OR release_year = 1995)
+AND (certification = 'PG' OR certification = 'R');
+
+
+-- Between keyword. BETWEEN is inclusive, meaning the beginning and end
+-- values are included in the results!
+SELECT title
+FROM films
+WHERE release_year
+BETWEEN 1994 AND 2000;
+
+
+-- IN keyword. IN operator allows you to specify multiple values in a
+-- WHERE clause, making it easier and quicker to specify multiple OR conditions!
+SELECT name
+FROM kids
+WHERE age IN (2, 4, 6, 8, 10);
+
+
+-- check for NULL values using the expression IS NULL. For example, to count
+-- the number of missing birth dates in the people table:
+SELECT COUNT(*)
+FROM people
+WHERE birthdate IS NULL;
+
+SELECT name
+FROM people
+WHERE birthdate IS NOT NULL;
+
+
+-- LIKE and NOT LIKE operators. The % wildcard will match zero, one, or many
+-- characters in text. For example, the following query matches companies like
+-- 'Data', 'DataC' 'DataCamp', 'DataMind', and so on:
+SELECT name
+FROM companies
+WHERE name LIKE 'Data%';
+
+-- The _ wildcard will match a single character. For example, the following
+-- query matches companies like 'DataCamp', 'DataComp', and so on:
+SELECT name
+FROM companies
+WHERE name LIKE 'DataC_mp';
+
+
+-- =========================== AGGREGATE FUNCTIONS =================================
+
+
+-- average value from the budget column of the films table.
+SELECT AVG(budget)
+FROM films;
+
+
+-- the MAX function returns the highest budget:
+SELECT MAX(budget)
+FROM films;
+
+
+-- The SUM function returns the result of adding up the numeric values in a column:
+SELECT SUM(budget)
+FROM films;
+
+
+
+-- ================= ALIASING ==============================
+
+
+-- Aliasing simply means you assign a temporary name to something. To alias,
+-- you use the AS keyword
+SELECT MAX(budget) AS max_budget,
+       MAX(duration) AS max_duration
+FROM films;
+
+
+
+-- ==================== SORTING and GROUPING =======================
+
+
+-- ORDER BY keyword is used to sort results in ascending or descending order
+-- according to the values of one or more columns. By default ORDER BY will sort
+-- in ascending order. If you want to sort the results in descending order, you can
+-- use the DESC keyword.
+SELECT title
+FROM films
+ORDER BY release_year DESC;
+
+
+-- Sorting multiple columns:
+SELECT birthdate, name
+FROM people
+ORDER BY birthdate, name;
+
+
+-- In SQL, aggregate functions can't be used in WHERE clauses. For example,
+-- the following query is invalid:
+SELECT release_year
+FROM films
+GROUP BY release_year
+WHERE COUNT(title) > 10;
+
+-- This means that if you want to filter based on the result of an aggregate
+-- function, you need another way! That's where the HAVING clause comes in. For example,
+SELECT release_year
+FROM films
+GROUP BY release_year
+HAVING COUNT(title) > 10;
+
+
+-- =============== JOINING ==================
+
+-- query multiple tables. In this case, you'd want to get the ID of the movie from the
+-- films table and then use it to get IMDB information from the reviews table. In SQL,
+-- this concept is known as a join.
+SELECT title, imdb_score
+FROM films
+JOIN reviews
+ON films.id = reviews.film_id
+WHERE title = 'To Kill a Mockingbird';
+
+-- ===== INNER JOINS =======
+
+-- Inner join. Matches only those records which keys are the same
+SELECT *
+FROM left_table
+INNER JOIN right_table
+ON left_table.id = right_table.id;
+
+
+When joining tables with a common field name, e.g.
+
+SELECT *
+FROM countries
+INNER JOIN economies
+ON countries.code = economies.code
+
+You can use USING as a shortcut:
+
+SELECT *
+FROM countries
+INNER JOIN economies
+USING(code)
+
+-- ==== SELF JOINS ====
+
+-- === CASE ===
+
+SELECT name, continent, code, surface_area,
+        -- first case
+    CASE WHEN surface_area > 2000000 THEN 'large'
+        -- second case
+        WHEN surface_area > 350000 THEN 'medium'
+        -- else clause + end
+        ELSE 'small' END
+        AS geosize_group
+FROM countries;
+
+
+-- ============== OUTER JOINS ===============
+
+
+-- === LEFT JOIN ===
+
+-- get the city name (and alias it), the country code,
+-- the country name (and alias it), the region,
+-- and the city proper population
+SELECT c1.name AS city, code, c2.name AS country,
+       region, city_proper_pop
+-- specify left table
+FROM cities AS c1
+-- specify right table and type of join
+INNER JOIN countries AS c2
+-- how should the tables be matched?
+ON c1.country_code = c2.code
+-- sort based on descending country code
+ORDER BY code DESC;
+
